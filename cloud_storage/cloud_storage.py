@@ -14,8 +14,7 @@ class ImportDataHandler(webapp2.RequestHandler):
         )
         bucket = '/' + bucket_name
         filename = self.request.headers['X-Keyscores-Filename']
-        # gcs_filename = os.path.join(bucket, filename)
-        gcs_filename = os.path.join(bucket, "testfile")
+        gcs_filename = os.path.join(bucket, filename)
         content_type = self.request.headers['Content-Type']
         file_data = self.request.body
         write_retry_params = gcs.RetryParams(backoff_factor=1.1)
