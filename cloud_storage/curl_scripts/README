@@ -1,0 +1,5 @@
+This folder contains a list of curl scripts that can be used to test a local
+testing app engine application.
+
+For example, the script "upload_file.sh" can use curl to upload an excel file
+to a POST endpoint on the app engine application.
