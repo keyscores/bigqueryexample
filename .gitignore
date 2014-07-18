@@ -54,3 +54,6 @@ docs/_build/
 
 # cloudstorage Python SDK
 cloud_storage/cloudstorage
+
+# xlrd can be installed through initialize.sh
+keyscores/xlrd/

@@ -6,4 +6,4 @@ threadsafe: true
 
 handlers:
 - url: /.*
-  script: cloud_storage.application
+  script: keyscores.application

@@ -12,7 +12,7 @@ Set up for the first time
     'virtualenv --clear --no-site-packages keyscores-bigquery'
 3. Inside the 'keyscores-bigquery' directory:
     $ git clone git@github.com:keyscores/bigqueryexample.git
-    $ pip install GoogleAppEngineCloudStorageClient -t bigqueryexample/cloud_storage
+    $ pip install GoogleAppEngineCloudStorageClient -t bigqueryexample/keyscores
 
 Run the dev server locally
 ===============
@@ -27,7 +27,7 @@ Run the curl scripts to test the dev server
 
 1. Inside the 'keyscores-bigquey/bigqueryexample' directory:
     $ . setup_env.sh
-    $ cd cloud_storage/curl_scripts
+    $ cd keyscores/curl_scripts
 2. To upload a test file to the dev server
     $ ./upload_file.sh Country_and_Region.xlsx
    To upload a test file to the production server

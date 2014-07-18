@@ -1,2 +1,2 @@
 #!/bin/bash
-appcfg.py --oauth2 update cloud_storage/
+appcfg.py --oauth2 update keyscores/
