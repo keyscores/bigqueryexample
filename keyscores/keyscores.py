@@ -1,5 +1,10 @@
+import argparse
 import csv
+import httplib2
+import json
 import os
+import pprint
+import time
 
 from cStringIO import StringIO
 
@@ -7,9 +12,20 @@ import xlrd
 import cloudstorage as gcs
 import webapp2
 
+from apiclient.discovery import build
+from apiclient.errors import HttpError
+from oauth2client.appengine import AppAssertionCredentials
+from oauth2client.file import Storage
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client import tools
+from oauth2client.tools import run_flow
 from google.appengine.api import app_identity
 
 from util import is_content_type_excel, write_gcs_file
+
+CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
+GCE_SCOPE = 'https://www.googleapis.com/auth/compute'
+FLOW = flow_from_clientsecrets(CLIENT_SECRETS, scope=GCE_SCOPE)
 
 
 class ImportDataHandler(webapp2.RequestHandler):
@@ -42,6 +58,10 @@ class ImportDataHandler(webapp2.RequestHandler):
                     )
 
 
+SCOPE = 'https://www.googleapis.com/auth/bigquery'
+PROJECT_NUMBER = 'kinetic-physics-644'
+
+
 class BigQueryLoadDataHandler(webapp2.RequestHandler):
     def post(self):
         """
@@ -72,8 +92,73 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
             }
         }
         """
+        # OAuth based work flow
+        # Create a storage file to save the credentials
+        # parser = argparse.ArgumentParser(
+        #     description=__doc__,
+        #     formatter_class=argparse.RawDescriptionHelpFormatter,
+        #     parents=[tools.argparser]
+        # )
+        # flags = parser.parse_args({})
+        # storage = Storage('bigquery-credentials.dat')
+        # credentials = storage.get()
+        # if credentials is None or credentials.invalid:
+        #     credentials = run_flow(FLOW, storage, flags)
+
+        # big query based auth flow
+        credentials = AppAssertionCredentials(scope=SCOPE)
+
+        # Create a httplib2.Http object to handle HTTP requests and authorize it
+        # with our valid credentials
+        http = httplib2.Http()
+        http = credentials.authorize(http)
+
+        self.response.content_type = 'application/json'
+
+        service = build('bigquery', 'v2', http=http)
+        try:
+            job_collection = service.jobs()
+            job_data = json.loads(self.request.body)
+            project_id = self.request.headers['X-Keyscores-Project-Id']
+            insert_response = job_collection.insert(
+                projectId=project_id, body=job_data
+            ).execute()
+            # Ping for status until the loading job is done, with a short pause between calls.
+            while True:
+                job = job_collection.get(
+                    projectId=project_id,
+                    jobId=insert_response['jobReference']['jobId'].execute()
+                )
+                if 'DONE' == job['status']['state']:
+                    print('DONE Loading!')
+                    data = {
+                        'status': 'success'
+                    }
+                    self.response.out.write(json.dumps(data))
+                    return
+
+                print 'Waiting for loading to complete...'
+                time.sleep(10)
+
+            if 'errorResult' in job['status']:
+                print('Error loading table: ', pprint.pprint(job))
+                data = {
+                    'status': 'error',
+                    'job': pprint.pprint(job)
+                }
+                self.response.out.write(json.dumps(data))
+                return
+        except HttpError as err:
+            print('Error loading data: ', pprint.pprint(err.resp))
+            data = {
+                'status': 'error',
+                'job': pprint.pprint(err.resp)
+            }
+            self.response.out.write(json.dumps(data))
+            return
 
 
 application = webapp2.WSGIApplication([
-    ('/upload', ImportDataHandler)
+    ('/upload', ImportDataHandler),
+    ('/load_data', BigQueryLoadDataHandler)
 ], debug=True)
