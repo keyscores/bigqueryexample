@@ -6,28 +6,26 @@ import requests
 
 testing_project_id = 'kinetic-physics-644'
 loading_job_data = {
-    'Country_and_Region.xlsx_Sheet1.csv': {
-        'projectId': testing_project_id,
-        'configuration': {
-            'load': {
-                'sourceUris': ['gs://keyscores_test/Country_and_Region.xlsx_Sheet1.csv'],
-                'schema': {
-                    'fields': [
-                        {
-                            'name': 'Country Code',
-                            'type': 'STRING'
-                        },
-                        {
-                            'name': 'Region',
-                            'type': 'STRING'
-                        }
-                    ]
-                },
-                'destinationTable': {
-                    'projectId': testing_project_id,
-                    'datasetId': 'Country_and_Region',
-                    'tableId': 'Country_and_Region_Sheet1_Table'
-                }
+    'projectId': testing_project_id,
+    'configuration': {
+        'load': {
+            'sourceUris': ['gs://keyscores_test/Country_and_Region.xlsx_Sheet1.csv'],
+            'schema': {
+                'fields': [
+                    {
+                        'name': 'Country_Code',
+                        'type': 'STRING'
+                    },
+                    {
+                        'name': 'Region',
+                        'type': 'STRING'
+                    }
+                ]
+            },
+            'destinationTable': {
+                'projectId': testing_project_id,
+                'datasetId': 'Country_and_Region',
+                'tableId': 'Country_and_Region_Sheet1_Table'
             }
         }
     }
@@ -61,3 +59,4 @@ class CountryAndRegionLoadingTestCase(unittest.TestCase):
             }
         )
         self.assertEqual(resp.status_code, 200)
+        print(resp.text)

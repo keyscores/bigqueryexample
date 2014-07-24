@@ -126,8 +126,8 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
             while True:
                 job = job_collection.get(
                     projectId=project_id,
-                    jobId=insert_response['jobReference']['jobId'].execute()
-                )
+                    jobId=insert_response['jobReference']['jobId']
+                ).execute()
                 if 'DONE' == job['status']['state']:
                     print('DONE Loading!')
                     data = {
@@ -140,15 +140,16 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
                 time.sleep(10)
 
             if 'errorResult' in job['status']:
-                print('Error loading table: ', pprint.pprint(job))
+                logging.info('Error loading table: ', pprint.pprint(job))
                 data = {
                     'status': 'error',
-                    'job': pprint.pprint(job)
+                    'job': pprint.pprint(job),
+                    'insert_response': insert_response
                 }
                 self.response.out.write(json.dumps(data))
                 return
         except HttpError as err:
-            print('Error loading data: ', pprint.pprint(err.resp))
+            logging.info('Error loading data: ', pprint.pprint(err))
             data = {
                 'status': 'error',
                 'job': pprint.pprint(err.resp)

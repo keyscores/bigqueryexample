@@ -57,3 +57,13 @@ cloud_storage/cloudstorage
 
 # xlrd can be installed through initialize.sh
 keyscores/xlrd/
+
+# Dependencies
+keyscores/apiclient/
+keyscores/client_secrets.json
+keyscores/gflags.py
+keyscores/gflags_validators.py
+keyscores/httplib2/
+keyscores/oauth2client/
+keyscores/requests/
+keyscores/uritemplate/
