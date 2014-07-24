@@ -59,7 +59,7 @@ class ImportDataHandler(webapp2.RequestHandler):
 
 
 SCOPE = 'https://www.googleapis.com/auth/bigquery'
-PROJECT_NUMBER = 'kinetic-physics-644'
+PROJECT_NUMBER = '266479093208'
 
 
 class BigQueryLoadDataHandler(webapp2.RequestHandler):
@@ -110,8 +110,7 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
 
         # Create a httplib2.Http object to handle HTTP requests and authorize it
         # with our valid credentials
-        http = httplib2.Http()
-        http = credentials.authorize(http)
+        http = credentials.authorize(httplib2.Http())
 
         self.response.content_type = 'application/json'
 
@@ -157,8 +156,37 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
             self.response.out.write(json.dumps(data))
             return
 
+import logging
+from google.appengine.api import urlfetch
+
+
+def create_short_url(long_url):
+    scope = "https://www.googleapis.com/auth/urlshortener"
+    authorization_token, _ = app_identity.get_access_token(scope)
+    logging.info("Using token %s to represent identity %s",
+                 authorization_token, app_identity.get_service_account_name())
+    payload = json.dumps({"longUrl": long_url})
+    response = urlfetch.fetch(
+            "https://www.googleapis.com/urlshortener/v1/url?pp=1",
+            method=urlfetch.POST,
+            payload=payload,
+            headers = {"Content-Type": "application/json",
+                       "Authorization": "OAuth " + authorization_token})
+    if response.status_code == 200:
+        result = json.loads(response.content)
+        return result["id"]
+    raise Exception("Call failed. Status code %s. Body %s",
+                    response.status_code, response.content)
+
+
+class URLShortnerHandler(webapp2.RequestHandler):
+    def get(self):
+        self.response.write(create_short_url(self.request.GET['long_url']))
+        return
+
 
 application = webapp2.WSGIApplication([
     ('/upload', ImportDataHandler),
-    ('/load_data', BigQueryLoadDataHandler)
+    ('/load_data', BigQueryLoadDataHandler),
+    ('/shorten_url', URLShortnerHandler)
 ], debug=True)
