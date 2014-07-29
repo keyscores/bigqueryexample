@@ -4,7 +4,10 @@ import unittest
 import requests
 
 
-file_names = ['Country_and_Region.xlsx']
+file_names = [
+    'Country_and_Region.xlsx', 'Sales.xlsx',
+    'Comission_and_Tax.xlsx', 'Currency.xlsx'
+]
 
 
 class ExcelFileLoadingTestCase(unittest.TestCase):
