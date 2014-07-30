@@ -4,6 +4,7 @@ import httplib2
 import json
 import os
 import pprint
+import re
 import time
 
 from cStringIO import StringIO
@@ -47,7 +48,13 @@ class ImportDataHandler(webapp2.RequestHandler):
                     sh = wb.sheet_by_name(sn)
                     csv_file = StringIO()
                     c = csv.writer(csv_file)
-                    for r in range(sh.nrows):
+                    first_row = sh.row_values(0)
+                    for idx, col in enumerate(first_row):
+                        clean_col = col.replace(" ", "_")
+                        clean_col = re.sub('[()]', '', clean_col)
+                        first_row[idx] = clean_col
+                    c.writerow(first_row)
+                    for r in range(1, sh.nrows):
                         c.writerow(sh.row_values(r))
                     filename = str(filename) + '_' + str(sn)
                     gcs_filename = os.path.join(bucket, filename + '.csv')
@@ -137,7 +144,7 @@ class BigQueryLoadDataHandler(webapp2.RequestHandler):
                     return
 
                 print 'Waiting for loading to complete...'
-                time.sleep(10)
+                time.sleep(15)
 
             if 'errorResult' in job['status']:
                 logging.info('Error loading table: ', pprint.pprint(job))
